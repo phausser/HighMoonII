@@ -12,6 +12,7 @@ Dieses Dokument gibt Agenten einen schnellen, verlässlichen Überblick über da
 - HTML-Einstieg: `index.html` lädt `dist/index.js` als ES-Modul
 - Spielerschiff startet rechts mittig, schaut nach links (`angle = Math.PI`).
 - Gegnerschiff startet links, schaut auf den Spieler.
+- Horizontaler Abstand zur Asteroidenfläche ist begrenzt über `SHIP_MAX_ASTEROID_DISTANCE_PX` (Spieler) und `ENEMY_MAX_ASTEROID_DISTANCE_PX` (Gegner).
 
 ## Relevante Dateien
 - `package.json`: Build-Skript (`tsc && cp assets/* dist/`) und Abhängigkeiten (nur `typescript`)
@@ -102,14 +103,14 @@ state = {
 
 ## Gegner-System
 - `EnemyShipState`: `active`, `entering`, `respawnAt`, `targetY`, `nextMoveAt`, `lastFiredAt` u. a.
-- Konstanten-Gruppe: `ENEMY_*` (z. B. `ENEMY_MARGIN_LEFT`, `ENEMY_FIRE_INTERVAL_MS`, `ENEMY_RESPAWN_DELAY_MS`, `ENEMY_ENTRY_SPEED`, `ENEMY_STILL_THRESHOLD_MS`).
+- Konstanten-Gruppe: `ENEMY_*` (z. B. `ENEMY_MARGIN_LEFT`, `ENEMY_MAX_ASTEROID_DISTANCE_PX`, `ENEMY_FIRE_INTERVAL_MS`, `ENEMY_RESPAWN_DELAY_MS`, `ENEMY_ENTRY_SPEED`, `ENEMY_STILL_THRESHOLD_MS`).
 - Gegner zielt immer auf den Spieler und feuert Homing-Projektile (rote Kugeln).
 - **Intelligentes Zielen**: Bewegt sich der Spieler länger als `ENEMY_STILL_THRESHOLD_MS` nicht, simuliert `simulateHitsPlayer()` Projektilbahnen für Winkel- und Y-Versatz-Kombinationen (`ENEMY_STILL_SIM_ANGLE_OFFSETS`, `ENEMY_STILL_SIM_Y_OFFSETS`). `findEnemyAimAngle()` wählt den treffsichersten Winkel.
 - **Respawn-Ablauf**:
   1. `active = false`, `respawnAt = now + ENEMY_RESPAWN_DELAY_MS` bei Tod.
   2. `updateEnemyShip` prüft `respawnAt` und ruft `respawnEnemyShip(now)` auf.
   3. `respawnEnemyShip` positioniert den Gegner links ausserhalb des Bildschirms (`x = -length * 2`), setzt `entering = true` und `active = true`.
-  4. Entry-Phase: Gegner bewegt sich mit `ENEMY_ENTRY_SPEED` nach rechts bis `ENEMY_MARGIN_LEFT`; kein Schuss in dieser Phase.
+  4. Entry-Phase: Gegner bewegt sich mit `ENEMY_ENTRY_SPEED` nach rechts bis `max(ENEMY_MARGIN_LEFT, asteroidAreaLeft - ENEMY_MAX_ASTEROID_DISTANCE_PX)`; kein Schuss in dieser Phase.
   5. Nach Ankunft: `entering = false`, normaler Kampfmodus.
 
 ## Arbeitsregeln für Agenten
@@ -146,7 +147,7 @@ Massgeblicher Style Guide: **[ts.dev/style](https://ts.dev/style/)** (Google Typ
 | **null vs. undefined** | `undefined` bevorzugen; `null` nur wo die Browser-API es erwartet |
 | **Zeilenlänge** | ≤ 80 Zeichen anstreben |
 
-Durchsetzung erfolgt durch Code-Review und diese Dokumentation (kein Linter konfiguriert).  
+Durchsetzung erfolgt durch Code-Review und diese Dokumentation (kein Linter konfiguriert).
 Optional: `npx gts init` würde ESLint mit ts.dev/style-Regeln einrichten – nur auf explizite Anforderung.
 
 ## Bekannte Besonderheiten

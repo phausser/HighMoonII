@@ -1,4 +1,4 @@
-import type { Star, Circle, ShipState, InputState, Projectile, Particle, EnemyShipState } from './types.js';
+import type { Star, Asteroid, ShipState, InputState, Projectile, Particle, EnemyShipState } from './types.js';
 import {
   SHIP_MAX_ENERGY, ENEMY_MAX_ENERGY, ENEMY_SPEED_Y, ENEMY_SPAWN_INTERVAL_MS,
 } from './constants.js';
@@ -16,7 +16,7 @@ document.body.appendChild(canvas);
 
 export const state = {
   stars: [] as Star[],
-  circles: [] as Circle[],
+  asteroids: [] as Asteroid[],
   projectiles: [] as Projectile[],
   enemyProjectiles: [] as Projectile[],
   particles: [] as Particle[],

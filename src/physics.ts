@@ -2,10 +2,10 @@ import {
   PROJECTILE_RADIUS, PROJECTILE_COLLISION_MARGIN, PROJECTILE_MAX_LIFETIME_MS,
   PROJECTILE_MARGIN_FROM_EDGE, MIN_ZOOM, ZOOM_IN_SPEED, ZOOM_OUT_SPEED,
 } from './constants.js';
-import type { Circle, Projectile } from './types.js';
+import type { Asteroid, Projectile } from './types.js';
 import { state, canvas } from './state.js';
 
-export function isProjectileCollidingWithAsteroid(px: number, py: number, circle: Circle): boolean {
+export function isProjectileCollidingWithAsteroid(px: number, py: number, circle: Asteroid): boolean {
   const dx = circle.x - px;
   const dy = circle.y - py;
   const collisionDistance = circle.radius + PROJECTILE_RADIUS + PROJECTILE_COLLISION_MARGIN;
@@ -47,9 +47,9 @@ export function updateZoom(deltaSeconds: number): void {
   const cW = maxX - minX, cH = maxY - minY;
   const cX = (minX + maxX) / 2, cY = (minY + maxY) / 2;
   const oX = Math.abs(cX - canvas.width / 2), oY = Math.abs(cY - canvas.height / 2);
-  const rW = cW + 2*PROJECTILE_RADIUS + 2*PROJECTILE_MARGIN_FROM_EDGE + 2*oX;
-  const rH = cH + 2*PROJECTILE_RADIUS + 2*PROJECTILE_MARGIN_FROM_EDGE + 2*oY;
-  const target = Math.max(MIN_ZOOM, Math.min(1.0, Math.min(canvas.width/rW, canvas.height/rH)));
+  const rW = cW + 2 * PROJECTILE_RADIUS + 2 * PROJECTILE_MARGIN_FROM_EDGE + 2 * oX;
+  const rH = cH + 2 * PROJECTILE_RADIUS + 2 * PROJECTILE_MARGIN_FROM_EDGE + 2 * oY;
+  const target = Math.max(MIN_ZOOM, Math.min(1.0, Math.min(canvas.width / rW, canvas.height / rH)));
   if (target < state.zoomLevel) {
     state.zoomLevel = Math.max(target, state.zoomLevel - ZOOM_OUT_SPEED * deltaSeconds);
   } else {

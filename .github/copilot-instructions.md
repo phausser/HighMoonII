@@ -39,6 +39,7 @@ Dieses Dokument definiert, wie Copilot in `HighMoon2` arbeiten soll.
 ## Änderungen an der Szene
 - Passe zuerst Konstanten in `src/constants.ts` an, bevor Logik umgebaut wird.
 - Relevante Konstanten-Gruppen: `STAR_*`, `MIN_CIRCLE_*`, `MAX_CIRCLE_*`, `SHIP_*`, `PROJECTILE_*`, `ZOOM_*`, `ENEMY_*`, `PARTICLE_*`.
+- Abstand zur Asteroidenfläche wird über Konstanten gesteuert: `SHIP_MAX_ASTEROID_DISTANCE_PX` (Spieler) und `ENEMY_MAX_ASTEROID_DISTANCE_PX` (Gegner).
 - Halte Render-Reihenfolge stabil, ausser es ist explizit angefragt (definiert in `render.ts`).
 - Beachte, dass die Szene browserbasiert bleibt (kein Framework/Bundler einführen).
 - Standardverhalten beibehalten: Spielerschiff startet rechts mittig, schaut nach links (`angle = Math.PI`).
@@ -73,10 +74,12 @@ Dieses Dokument definiert, wie Copilot in `HighMoon2` arbeiten soll.
 
 ## Gegner-Verhalten
 - Gegner-Schiff (rot) startet links auf Höhe `ENEMY_MARGIN_LEFT`.
+- Gegner halten horizontal maximal `ENEMY_MAX_ASTEROID_DISTANCE_PX` Abstand zur linken Asteroidenfläche.
 - Bewegt sich vertikal in Zufallsintervallen; Winkel zeigt immer auf Spielerschiff.
 - Feuert alle `ENEMY_FIRE_INTERVAL_MS` ms ein lenkendes Projektil (Homing).
 - **Intelligentes Zielen** (`ENEMY_STILL_*`-Konstanten): Steht der Spieler länger als `ENEMY_STILL_THRESHOLD_MS` still, simuliert `simulateHitsPlayer()` Projektilbahnen für verschiedene Winkel- und Y-Versatz-Kombinationen und wählt den treffsichersten.
 - **Respawn**: Nach dem Tod fliegt nach `ENEMY_RESPAWN_DELAY_MS` ms ein neuer Gegner von links ausserhalb des Bildschirms ins Spielfeld (`entering`-Phase). Während der Entry-Phase kein Schuss.
+- Entry-Stop ist dynamisch: `max(ENEMY_MARGIN_LEFT, asteroidAreaLeft - ENEMY_MAX_ASTEROID_DISTANCE_PX)`.
 - Relevante Felder in `EnemyShipState`: `active`, `entering`, `respawnAt`, `targetY`, `nextMoveAt`, `lastFiredAt`.
 - Respawn-Logik: `respawnEnemyShip(now)` setzt Position, Energie und Flags; `updateEnemyShip` steuert Entry-Bewegung und prüft `respawnAt`.
 

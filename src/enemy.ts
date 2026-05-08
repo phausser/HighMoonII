@@ -8,6 +8,7 @@ import {
   ENEMY_COLOR_RGB, ENEMY_SPEED_Y,
   ENEMY_MAX_COUNT, ENEMY_SPAWN_INTERVAL_MS,
   ENEMY_MIN_SEPARATION, ENEMY_SEPARATION_FORCE,
+  ENEMY_MAX_ASTEROID_DISTANCE_PX,
   PROJECTILE_SPEED, PROJECTILE_RADIUS, PROJECTILE_MAX_LIFETIME_MS,
   PROJECTILE_SHIP_COLLISION_GRACE_MS, PROJECTILE_GRAVITY_CONSTANT,
   PROJECTILE_GRAVITY_MIN_DISTANCE, PROJECTILE_MAX_GRAVITY_ACCELERATION,
@@ -77,7 +78,15 @@ export function initializeEnemyShip(width: number, height: number): void {
     ship.y = height / 2;
   }
   const h = ship.length / 2;
-  ship.x = clamp(ship.x, h, width - h);
+  const asteroidAreaLeft = state.asteroids.reduce(
+    (minLeft, asteroid) => Math.min(minLeft, asteroid.x - asteroid.radius),
+    width / 4,
+  );
+  const minShipX = Math.max(
+    h,
+    asteroidAreaLeft - ENEMY_MAX_ASTEROID_DISTANCE_PX,
+  );
+  ship.x = clamp(ship.x, minShipX, width - h);
   ship.y = clamp(ship.y, h, height - h);
   ship.targetY = ship.y;
 }
@@ -122,7 +131,7 @@ function simulateHitsPlayer(
   );
   const scr = Math.max(state.ship.length, state.ship.width) / 2;
   for (let step = 0; step < maxSteps; step++) {
-    if (state.circles.some((c) => isProjectileCollidingWithAsteroid(x, y, c))) {
+    if (state.asteroids.some((c) => isProjectileCollidingWithAsteroid(x, y, c))) {
       return false;
     }
     if (isProjectileCollidingWithTarget(x, y, state.ship.x, state.ship.y, scr)) {
@@ -130,15 +139,15 @@ function simulateHitsPlayer(
     }
     let ax = 0;
     let ay = 0;
-    for (const circle of state.circles) {
-      const dx = circle.x - x;
-      const dy = circle.y - y;
+    for (const asteroid of state.asteroids) {
+      const dx = asteroid.x - x;
+      const dy = asteroid.y - y;
       const dSq = dx * dx + dy * dy;
-      const minD = Math.max(PROJECTILE_GRAVITY_MIN_DISTANCE, circle.radius * 0.35);
+      const minD = Math.max(PROJECTILE_GRAVITY_MIN_DISTANCE, asteroid.radius * 0.35);
       const cdSq = Math.max(dSq, minD * minD);
       const d = Math.sqrt(cdSq);
       const mag = Math.min(
-        (PROJECTILE_GRAVITY_CONSTANT * circle.mass) / cdSq,
+        (PROJECTILE_GRAVITY_CONSTANT * asteroid.mass) / cdSq,
         PROJECTILE_MAX_GRAVITY_ACCELERATION,
       );
       ax += (dx / d) * mag;
@@ -225,8 +234,16 @@ function updateSingleEnemyShip(
   if (ship.entering) {
     ship.x += ENEMY_ENTRY_SPEED * deltaSeconds;
     ship.angle = 0;
-    if (ship.x >= ENEMY_MARGIN_LEFT) {
-      ship.x = ENEMY_MARGIN_LEFT;
+    const asteroidAreaLeft = state.asteroids.reduce(
+      (minLeft, asteroid) => Math.min(minLeft, asteroid.x - asteroid.radius),
+      canvas.width / 4,
+    );
+    const entryStopX = Math.max(
+      ENEMY_MARGIN_LEFT,
+      asteroidAreaLeft - ENEMY_MAX_ASTEROID_DISTANCE_PX,
+    );
+    if (ship.x >= entryStopX) {
+      ship.x = entryStopX;
       ship.entering = false;
       ship.nextMoveAt = now + randomBetween(ENEMY_STAY_MIN_MS, ENEMY_STAY_MAX_MS);
     }
@@ -340,7 +357,7 @@ export function updateEnemyProjectiles(
   const surviving: Projectile[] = [];
   const scr = Math.max(state.ship.length, state.ship.width) / 2;
   for (const p of state.enemyProjectiles) {
-    if (state.circles.some((c) => isProjectileCollidingWithAsteroid(p.x, p.y, c))) {
+    if (state.asteroids.some((c) => isProjectileCollidingWithAsteroid(p.x, p.y, c))) {
       spawnParticles(
         p.x, p.y, calculateProjectileEnergy(p, now), '255, 68, 68', now,
       );
@@ -358,15 +375,15 @@ export function updateEnemyProjectiles(
     }
     let ax = 0;
     let ay = 0;
-    for (const circle of state.circles) {
-      const dx = circle.x - p.x;
-      const dy = circle.y - p.y;
+    for (const asteroid of state.asteroids) {
+      const dx = asteroid.x - p.x;
+      const dy = asteroid.y - p.y;
       const dSq = dx * dx + dy * dy;
-      const minD = Math.max(PROJECTILE_GRAVITY_MIN_DISTANCE, circle.radius * 0.35);
+      const minD = Math.max(PROJECTILE_GRAVITY_MIN_DISTANCE, asteroid.radius * 0.35);
       const cdSq = Math.max(dSq, minD * minD);
       const d = Math.sqrt(cdSq);
       const mag = Math.min(
-        (PROJECTILE_GRAVITY_CONSTANT * circle.mass) / cdSq,
+        (PROJECTILE_GRAVITY_CONSTANT * asteroid.mass) / cdSq,
         PROJECTILE_MAX_GRAVITY_ACCELERATION,
       );
       ax += (dx / d) * mag;
@@ -383,7 +400,7 @@ export function updateEnemyProjectiles(
     p.vy += ay * deltaSeconds;
     p.x += p.vx * deltaSeconds;
     p.y += p.vy * deltaSeconds;
-    if (state.circles.some((c) => isProjectileCollidingWithAsteroid(p.x, p.y, c))) {
+    if (state.asteroids.some((c) => isProjectileCollidingWithAsteroid(p.x, p.y, c))) {
       spawnParticles(
         p.x, p.y, calculateProjectileEnergy(p, now), '255, 68, 68', now,
       );

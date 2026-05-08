@@ -1,7 +1,7 @@
 import { BACKGROUND_COLOR, SHAKE_DURATION_MS, SHAKE_INTENSITY } from './constants.js';
 import { state, canvas, context } from './state.js';
 import { createStars, updateBlink, drawStars } from './stars.js';
-import { createCircles, drawCenterCircles } from './asteroids.js';
+import { createAsteroids, drawAsteroids } from './asteroids.js';
 import { updateZoom } from './physics.js';
 import { updateParticles, drawParticles } from './particles.js';
 import {
@@ -17,7 +17,7 @@ export function resizeCanvas(): void {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
   state.stars = createStars(canvas.width, canvas.height);
-  state.circles = createCircles(canvas.width, canvas.height);
+  state.asteroids = createAsteroids(canvas.width, canvas.height);
   initializeOrClampShip(canvas.width, canvas.height);
   initializeEnemyShip(canvas.width, canvas.height);
 }
@@ -54,7 +54,7 @@ export function render(now: number): void {
   }
 
   drawStars(now);
-  drawCenterCircles();
+  drawAsteroids();
   drawParticles(now);
   drawProjectiles(now);
   drawEnemyProjectiles(now);

@@ -9,7 +9,7 @@ export type Crater = {
   offsetY: number;
   radius: number;
 };
-export type Circle = {
+export type Asteroid = {
   x: number;
   y: number;
   radius: number;

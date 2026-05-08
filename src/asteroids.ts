@@ -1,10 +1,10 @@
 import {
-  CIRCLE_COUNT, MIN_CIRCLE_RADIUS, MAX_CIRCLE_RADIUS, MIN_CIRCLE_GAP,
-  MAX_ATTEMPTS_PER_CIRCLE, ASTEROID_GRAY_MIN, ASTEROID_GRAY_MAX, ASTEROID_DENSITY,
+  ASTEROID_COUNT, MIN_ASTEROID_RADIUS, MAX_ASTEROID_RADIUS, MIN_ASTEROID_GAP,
+  MAX_ATTEMPTS_PER_ASTEROID, ASTEROID_GRAY_MIN, ASTEROID_GRAY_MAX, ASTEROID_DENSITY,
   CRATER_COUNT_MIN, CRATER_COUNT_MAX, CRATER_RADIUS_MIN, CRATER_RADIUS_MAX,
   CRATER_EDGE_MARGIN,
 } from './constants.js';
-import type { Circle, Crater } from './types.js';
+import type { Asteroid, Crater } from './types.js';
 import { randomBetween } from './utils.js';
 import { state, canvas, context } from './state.js';
 
@@ -57,19 +57,19 @@ function generateCraters(radius: number): Crater[] {
   return craters;
 }
 
-export function createCircles(width: number, height: number): Circle[] {
+export function createAsteroids(width: number, height: number): Asteroid[] {
   const minX = width / 4, maxX = (width * 3) / 4;
   const minY = height / 4, maxY = (height * 3) / 4;
-  const result: Circle[] = [];
-  let minGap = MIN_CIRCLE_GAP;
-  for (let i = 0; i < CIRCLE_COUNT; i++) {
-    let selected: Circle | null = null;
-    let bestCandidate: Circle | null = null;
+  const result: Asteroid[] = [];
+  let minGap = MIN_ASTEROID_GAP;
+  for (let i = 0; i < ASTEROID_COUNT; i++) {
+    let selected: Asteroid | null = null;
+    let bestCandidate: Asteroid | null = null;
     let bestGap = -Infinity;
-    for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_CIRCLE; attempt++) {
-      const candidate: Circle = {
+    for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_ASTEROID; attempt++) {
+      const candidate: Asteroid = {
         x: randomBetween(minX, maxX), y: randomBetween(minY, maxY),
-        radius: randomBetween(MIN_CIRCLE_RADIUS, MAX_CIRCLE_RADIUS), mass: 0,
+        radius: randomBetween(MIN_ASTEROID_RADIUS, MAX_ASTEROID_RADIUS), mass: 0,
         grayShade: Math.floor(randomBetween(ASTEROID_GRAY_MIN, ASTEROID_GRAY_MAX)),
         craters: [],
       };
@@ -87,7 +87,7 @@ export function createCircles(width: number, height: number): Circle[] {
       minGap = Math.max(6, minGap * 0.85);
       selected = bestCandidate ?? {
         x: randomBetween(minX, maxX), y: randomBetween(minY, maxY),
-        radius: randomBetween(MIN_CIRCLE_RADIUS, MAX_CIRCLE_RADIUS), mass: 0,
+        radius: randomBetween(MIN_ASTEROID_RADIUS, MAX_ASTEROID_RADIUS), mass: 0,
         grayShade: Math.floor(randomBetween(ASTEROID_GRAY_MIN, ASTEROID_GRAY_MAX)),
         craters: [],
       };
@@ -101,17 +101,17 @@ export function createCircles(width: number, height: number): Circle[] {
   return result;
 }
 
-export function drawCenterCircles(): void {
-  for (const circle of state.circles) {
-    const g = circle.grayShade;
+export function drawAsteroids(): void {
+  for (const asteroid of state.asteroids) {
+    const g = asteroid.grayShade;
     const d = g * 0.7;
     const zx =
-      circle.x * state.zoomLevel +
+      asteroid.x * state.zoomLevel +
       (canvas.width * (1 - state.zoomLevel)) / 2;
     const zy =
-      circle.y * state.zoomLevel +
+      asteroid.y * state.zoomLevel +
       (canvas.height * (1 - state.zoomLevel)) / 2;
-    const zr = circle.radius * state.zoomLevel;
+    const zr = asteroid.radius * state.zoomLevel;
 
     // Grundkörper
     context.fillStyle = `rgb(${d}, ${d}, ${d})`;
@@ -136,7 +136,7 @@ export function drawCenterCircles(): void {
     context.restore();
 
     // Krater als kleine dunkle Halbmonde auf der Schattenseite
-    for (const crater of circle.craters) {
+    for (const crater of asteroid.craters) {
       const craterX = zx - zr * 0.15 + crater.offsetX * state.zoomLevel;
       const craterY = zy - zr * 0.15 + crater.offsetY * state.zoomLevel;
       const craterR = crater.radius * state.zoomLevel;

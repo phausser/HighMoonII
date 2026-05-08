@@ -1,5 +1,6 @@
 import {
   SHIP_MARGIN_RIGHT, SHIP_MAX_ENERGY, SHIP_COLOR, SHIP_COLOR_RGB,
+  SHIP_MAX_ASTEROID_DISTANCE_PX,
   PROJECTILE_SPEED, PROJECTILE_RADIUS, PROJECTILE_MAX_LIFETIME_MS,
   PROJECTILE_SHIP_COLLISION_GRACE_MS, PROJECTILE_GRAVITY_CONSTANT,
   PROJECTILE_GRAVITY_MIN_DISTANCE, PROJECTILE_MAX_GRAVITY_ACCELERATION,
@@ -23,7 +24,15 @@ export function initializeOrClampShip(width: number, height: number): void {
     state.ship.angle = Math.PI;
   }
   const h = state.ship.length / 2;
-  state.ship.x = clamp(state.ship.x, h, width - h);
+  const asteroidAreaRight = state.asteroids.reduce(
+    (maxRight, circle) => Math.max(maxRight, circle.x + circle.radius),
+    (width * 3) / 4,
+  );
+  const maxShipX = Math.min(
+    width - h,
+    asteroidAreaRight + SHIP_MAX_ASTEROID_DISTANCE_PX,
+  );
+  state.ship.x = clamp(state.ship.x, h, maxShipX);
   state.ship.y = clamp(state.ship.y, h, height - h);
 }
 
@@ -134,7 +143,7 @@ function handleProjectileHitEnemy(projectile: Projectile, now: number): boolean 
 export function updateProjectiles(deltaSeconds: number, now: number): void {
   const surviving: Projectile[] = [];
   for (const p of state.projectiles) {
-    if (state.circles.some((c) => isProjectileCollidingWithAsteroid(p.x, p.y, c))) {
+    if (state.asteroids.some((c) => isProjectileCollidingWithAsteroid(p.x, p.y, c))) {
       spawnParticles(p.x, p.y, calculateProjectileEnergy(p, now), SHIP_COLOR_RGB, now);
       continue;
     }
@@ -149,7 +158,7 @@ export function updateProjectiles(deltaSeconds: number, now: number): void {
 
     let ax = 0;
     let ay = 0;
-    for (const circle of state.circles) {
+    for (const circle of state.asteroids) {
       const dx = circle.x - p.x;
       const dy = circle.y - p.y;
       const dSq = dx * dx + dy * dy;
@@ -168,7 +177,7 @@ export function updateProjectiles(deltaSeconds: number, now: number): void {
     p.x += p.vx * deltaSeconds;
     p.y += p.vy * deltaSeconds;
 
-    if (state.circles.some((c) => isProjectileCollidingWithAsteroid(p.x, p.y, c))) {
+    if (state.asteroids.some((c) => isProjectileCollidingWithAsteroid(p.x, p.y, c))) {
       spawnParticles(p.x, p.y, calculateProjectileEnergy(p, now), SHIP_COLOR_RGB, now);
       continue;
     }
