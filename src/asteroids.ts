@@ -1,13 +1,60 @@
 import {
   CIRCLE_COUNT, MIN_CIRCLE_RADIUS, MAX_CIRCLE_RADIUS, MIN_CIRCLE_GAP,
   MAX_ATTEMPTS_PER_CIRCLE, ASTEROID_GRAY_MIN, ASTEROID_GRAY_MAX, ASTEROID_DENSITY,
+  CRATER_COUNT_MIN, CRATER_COUNT_MAX, CRATER_RADIUS_MIN, CRATER_RADIUS_MAX,
+  CRATER_EDGE_MARGIN,
 } from './constants.js';
-import type { Circle } from './types.js';
+import type { Circle, Crater } from './types.js';
 import { randomBetween } from './utils.js';
 import { state, canvas, context } from './state.js';
 
 export function calculateAsteroidMass(radius: number): number {
   return ASTEROID_DENSITY * ((4 / 3) * Math.PI * radius * radius * radius);
+}
+
+function generateCraters(radius: number): Crater[] {
+  const craters: Crater[] = [];
+  const craterCount = Math.floor(
+    randomBetween(CRATER_COUNT_MIN, CRATER_COUNT_MAX + 1),
+  );
+  for (let i = 0; i < craterCount; i++) {
+    let craterCandidate: Crater | undefined = undefined;
+    for (let attempt = 0; attempt < 14; attempt++) {
+      const angle = randomBetween(0, Math.PI * 2);
+      const craterRadius = randomBetween(CRATER_RADIUS_MIN, CRATER_RADIUS_MAX);
+      const maxDistanceFromCenter = Math.max(
+        0,
+        radius - craterRadius - radius * CRATER_EDGE_MARGIN / 100,
+      );
+      const distance =
+        Math.sqrt(randomBetween(0, 1)) * maxDistanceFromCenter;
+      const offsetX = Math.cos(angle) * distance;
+      const offsetY = Math.sin(angle) * distance;
+      const candidate: Crater = { offsetX, offsetY, radius: craterRadius };
+
+      let overlaps = false;
+      for (const existing of craters) {
+        const dist = Math.hypot(
+          candidate.offsetX - existing.offsetX,
+          candidate.offsetY - existing.offsetY,
+        );
+        if (dist < candidate.radius + existing.radius + 1) {
+          overlaps = true;
+          break;
+        }
+      }
+
+      if (!overlaps) {
+        craterCandidate = candidate;
+        break;
+      }
+    }
+
+    if (craterCandidate) {
+      craters.push(craterCandidate);
+    }
+  }
+  return craters;
 }
 
 export function createCircles(width: number, height: number): Circle[] {
@@ -24,8 +71,10 @@ export function createCircles(width: number, height: number): Circle[] {
         x: randomBetween(minX, maxX), y: randomBetween(minY, maxY),
         radius: randomBetween(MIN_CIRCLE_RADIUS, MAX_CIRCLE_RADIUS), mass: 0,
         grayShade: Math.floor(randomBetween(ASTEROID_GRAY_MIN, ASTEROID_GRAY_MAX)),
+        craters: [],
       };
       candidate.mass = calculateAsteroidMass(candidate.radius);
+      candidate.craters = generateCraters(candidate.radius);
       let smallestEdgeGap = Infinity;
       for (const existing of result) {
         const edgeGap = Math.hypot(candidate.x - existing.x, candidate.y - existing.y) - (candidate.radius + existing.radius);
@@ -40,8 +89,12 @@ export function createCircles(width: number, height: number): Circle[] {
         x: randomBetween(minX, maxX), y: randomBetween(minY, maxY),
         radius: randomBetween(MIN_CIRCLE_RADIUS, MAX_CIRCLE_RADIUS), mass: 0,
         grayShade: Math.floor(randomBetween(ASTEROID_GRAY_MIN, ASTEROID_GRAY_MAX)),
+        craters: [],
       };
       if (selected.mass === 0) selected.mass = calculateAsteroidMass(selected.radius);
+      if (selected.craters.length === 0) {
+        selected.craters = generateCraters(selected.radius);
+      }
     }
     result.push(selected);
   }
@@ -51,6 +104,7 @@ export function createCircles(width: number, height: number): Circle[] {
 export function drawCenterCircles(): void {
   for (const circle of state.circles) {
     const g = circle.grayShade;
+    const d = g * 0.7;
     const zx =
       circle.x * state.zoomLevel +
       (canvas.width * (1 - state.zoomLevel)) / 2;
@@ -60,7 +114,7 @@ export function drawCenterCircles(): void {
     const zr = circle.radius * state.zoomLevel;
 
     // Grundkörper
-    context.fillStyle = `rgb(${g}, ${g}, ${g})`;
+    context.fillStyle = `rgb(${d}, ${d}, ${d})`;
     context.beginPath();
     context.arc(zx, zy, zr, 0, Math.PI * 2);
     context.fill();
@@ -70,7 +124,7 @@ export function drawCenterCircles(): void {
     context.beginPath();
     context.arc(zx, zy, zr, 0, Math.PI * 2);
     context.clip();
-    context.fillStyle = 'rgba(255, 255, 255, 0.10)';
+    context.fillStyle = `rgb(${g}, ${g}, ${g})`;
     context.beginPath();
     context.arc(
       zx - zr * 0.15,
@@ -80,5 +134,39 @@ export function drawCenterCircles(): void {
     );
     context.fill();
     context.restore();
+
+    // Krater als kleine dunkle Halbmonde auf der Schattenseite
+    for (const crater of circle.craters) {
+      const craterX = zx - zr * 0.15 + crater.offsetX * state.zoomLevel;
+      const craterY = zy - zr * 0.15 + crater.offsetY * state.zoomLevel;
+      const craterR = crater.radius * state.zoomLevel;
+
+      context.save();
+      context.beginPath();
+      context.arc(craterX, craterY, craterR, 0, Math.PI * 2);
+      context.clip();
+
+      context.fillStyle = `rgb(${d}, ${d}, ${d})`;
+      context.beginPath();
+      context.arc(
+        craterX,
+        craterY,
+        craterR,
+        0, Math.PI * 2,
+      );
+      context.fill();
+
+      context.fillStyle = `rgb(${g}, ${g}, ${g})`;
+      context.beginPath();
+      context.arc(
+        craterX + craterR * 0.15,
+        craterY + craterR * 0.15,
+        craterR * 0.8,
+        0, Math.PI * 2
+      );
+      context.fill();
+
+      context.restore();
+    }
   }
 }

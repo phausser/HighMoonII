@@ -4,12 +4,18 @@ export type Star = {
   alpha: number;
   size: number;
 };
+export type Crater = {
+  offsetX: number;
+  offsetY: number;
+  radius: number;
+};
 export type Circle = {
   x: number;
   y: number;
   radius: number;
   mass: number;
   grayShade: number;
+  craters: Crater[];
 };
 export type ShipState = {
   x: number;
