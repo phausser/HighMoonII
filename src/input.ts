@@ -5,14 +5,15 @@ import {
 import { state, canvas } from './state.js';
 import type { EnemyShipState } from './types.js';
 import { spawnProjectile } from './ship.js';
+import { initializeEnemyShip } from './enemy.js';
 import { startMusic } from './audio.js';
 
 function setInputByKey(key: string, isPressed: boolean): void {
   switch (key) {
-    case "ArrowLeft":  state.input.left  = isPressed; break;
+    case "ArrowLeft": state.input.left = isPressed; break;
     case "ArrowRight": state.input.right = isPressed; break;
-    case "ArrowUp":    state.input.up    = isPressed; break;
-    case "ArrowDown":  state.input.down  = isPressed; break;
+    case "ArrowUp": state.input.up = isPressed; break;
+    case "ArrowDown": state.input.down = isPressed; break;
     default: break;
   }
 }
@@ -47,6 +48,7 @@ export function setupInput(): void {
           respawnAt: -1,
         } as EnemyShipState,
       ];
+      initializeEnemyShip(canvas.width, canvas.height);
       state.nextEnemySpawnAt = performance.now() + ENEMY_SPAWN_INTERVAL_MS;
       startMusic();
     }
