@@ -25,7 +25,7 @@ export function initializeOrClampShip(width: number, height: number): void {
   }
   const h = state.ship.length / 2;
   const asteroidAreaRight = state.asteroids.reduce(
-    (maxRight, circle) => Math.max(maxRight, circle.x + circle.radius),
+    (maxRight, asteroid) => Math.max(maxRight, asteroid.x + asteroid.radius),
     (width * 3) / 4,
   );
   const maxShipX = Math.min(
@@ -158,15 +158,15 @@ export function updateProjectiles(deltaSeconds: number, now: number): void {
 
     let ax = 0;
     let ay = 0;
-    for (const circle of state.asteroids) {
-      const dx = circle.x - p.x;
-      const dy = circle.y - p.y;
+    for (const asteroid of state.asteroids) {
+      const dx = asteroid.x - p.x;
+      const dy = asteroid.y - p.y;
       const dSq = dx * dx + dy * dy;
-      const minD = Math.max(PROJECTILE_GRAVITY_MIN_DISTANCE, circle.radius * 0.35);
+      const minD = Math.max(PROJECTILE_GRAVITY_MIN_DISTANCE, asteroid.radius * 0.35);
       const cdSq = Math.max(dSq, minD * minD);
       const d = Math.sqrt(cdSq);
       const mag = Math.min(
-        (PROJECTILE_GRAVITY_CONSTANT * circle.mass) / cdSq,
+        (PROJECTILE_GRAVITY_CONSTANT * asteroid.mass) / cdSq,
         PROJECTILE_MAX_GRAVITY_ACCELERATION,
       );
       ax += (dx / d) * mag;

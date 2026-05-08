@@ -5,10 +5,10 @@ import {
 import type { Asteroid, Projectile } from './types.js';
 import { state, canvas } from './state.js';
 
-export function isProjectileCollidingWithAsteroid(px: number, py: number, circle: Asteroid): boolean {
-  const dx = circle.x - px;
-  const dy = circle.y - py;
-  const collisionDistance = circle.radius + PROJECTILE_RADIUS + PROJECTILE_COLLISION_MARGIN;
+export function isProjectileCollidingWithAsteroid(px: number, py: number, asteroid: Asteroid): boolean {
+  const dx = asteroid.x - px;
+  const dy = asteroid.y - py;
+  const collisionDistance = asteroid.radius + PROJECTILE_RADIUS + PROJECTILE_COLLISION_MARGIN;
   return dx * dx + dy * dy <= collisionDistance * collisionDistance;
 }
 
