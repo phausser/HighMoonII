@@ -1,7 +1,7 @@
 import {
   SHIP_MARGIN_RIGHT, SHIP_MAX_ENERGY, SHIP_COLOR, SHIP_COLOR_RGB,
   SHIP_MAX_ASTEROID_DISTANCE_PX,
-  PROJECTILE_SPEED, PROJECTILE_RADIUS, PROJECTILE_MAX_LIFETIME_MS,
+  PROJECTILE_SPEED, PROJECTILE_RADIUS,
   PROJECTILE_SHIP_COLLISION_GRACE_MS, PROJECTILE_GRAVITY_CONSTANT,
   PROJECTILE_GRAVITY_MIN_DISTANCE, PROJECTILE_MAX_GRAVITY_ACCELERATION,
   ENERGY_BAR_WIDTH, ENERGY_BAR_HEIGHT, ENERGY_BAR_OFFSET_Y,
@@ -191,12 +191,17 @@ export function updateProjectiles(deltaSeconds: number, now: number): void {
     if (handleProjectileHitEnemy(p, now)) continue;
     surviving.push(p);
   }
-  state.projectiles = surviving.filter((p) => now - p.createdAt <= PROJECTILE_MAX_LIFETIME_MS);
+  state.projectiles = surviving.filter(
+    (p) => now - p.createdAt <= state.projectileMaxLifetimeMs,
+  );
 }
 
 export function drawProjectiles(now: number): void {
   for (const p of state.projectiles) {
-    const alpha = Math.max(0, 1 - (now - p.createdAt) / PROJECTILE_MAX_LIFETIME_MS);
+    const alpha = Math.max(
+      0,
+      1 - (now - p.createdAt) / state.projectileMaxLifetimeMs,
+    );
     const zx = p.x * state.zoomLevel + (canvas.width * (1 - state.zoomLevel)) / 2;
     const zy = p.y * state.zoomLevel + (canvas.height * (1 - state.zoomLevel)) / 2;
     context.fillStyle = `rgba(${SHIP_COLOR_RGB}, ${alpha})`;

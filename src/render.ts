@@ -1,4 +1,7 @@
-import { BACKGROUND_COLOR, SHAKE_DURATION_MS, SHAKE_INTENSITY } from './constants.js';
+import {
+  BACKGROUND_COLOR, SHAKE_DURATION_MS, SHAKE_INTENSITY,
+  SHIP_MARGIN_RIGHT, ENEMY_MARGIN_LEFT, PROJECTILE_SPEED,
+} from './constants.js';
 import { state, canvas, context } from './state.js';
 import { createStars, updateBlink, drawStars } from './stars.js';
 import { drawAsteroids } from './asteroids.js';
@@ -17,6 +20,9 @@ export function resizeCanvas(): void {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
   state.stars = createStars(canvas.width, canvas.height);
+  const horizontalDist = canvas.width - SHIP_MARGIN_RIGHT - ENEMY_MARGIN_LEFT;
+  state.projectileMaxLifetimeMs =
+    2 * horizontalDist * 1000 / PROJECTILE_SPEED;
   initializeOrClampShip(canvas.width, canvas.height);
   initializeEnemyShip(canvas.width, canvas.height);
 }

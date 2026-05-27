@@ -1,6 +1,7 @@
 import type { Star, Asteroid, ShipState, InputState, Projectile, Particle, EnemyShipState } from './types.js';
 import {
   SHIP_MAX_ENERGY, ENEMY_MAX_ENERGY, ENEMY_SPEED_Y, ENEMY_SPAWN_INTERVAL_MS,
+  PROJECTILE_MAX_LIFETIME_MS,
 } from './constants.js';
 
 export const canvas = document.createElement("canvas");
@@ -66,5 +67,6 @@ export const state = {
   score: 0,
   enemyShotCount: 0,
   nextEnemySpawnAt: ENEMY_SPAWN_INTERVAL_MS,
+  projectileMaxLifetimeMs: PROJECTILE_MAX_LIFETIME_MS,
 };
 

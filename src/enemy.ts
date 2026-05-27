@@ -9,7 +9,7 @@ import {
   ENEMY_MAX_COUNT, ENEMY_SPAWN_INTERVAL_MS,
   ENEMY_MIN_SEPARATION, ENEMY_SEPARATION_FORCE,
   ENEMY_MAX_ASTEROID_DISTANCE_PX,
-  PROJECTILE_SPEED, PROJECTILE_RADIUS, PROJECTILE_MAX_LIFETIME_MS,
+  PROJECTILE_SPEED, PROJECTILE_RADIUS,
   PROJECTILE_SHIP_COLLISION_GRACE_MS, PROJECTILE_GRAVITY_CONSTANT,
   PROJECTILE_GRAVITY_MIN_DISTANCE, PROJECTILE_MAX_GRAVITY_ACCELERATION,
 } from './constants.js';
@@ -127,7 +127,7 @@ function simulateHitsPlayer(
   let vx = Math.cos(angle) * PROJECTILE_SPEED;
   let vy = Math.sin(angle) * PROJECTILE_SPEED;
   const maxSteps = Math.ceil(
-    (PROJECTILE_MAX_LIFETIME_MS / 1000) / ENEMY_STILL_SIM_STEP,
+    (state.projectileMaxLifetimeMs / 1000) / ENEMY_STILL_SIM_STEP,
   );
   const scr = Math.max(state.ship.length, state.ship.width) / 2;
   for (let step = 0; step < maxSteps; step++) {
@@ -419,7 +419,7 @@ export function updateEnemyProjectiles(
     surviving.push(p);
   }
   state.enemyProjectiles = surviving.filter(
-    (p) => now - p.createdAt <= PROJECTILE_MAX_LIFETIME_MS,
+    (p) => now - p.createdAt <= state.projectileMaxLifetimeMs,
   );
 }
 
@@ -427,7 +427,7 @@ export function drawEnemyProjectiles(now: number): void {
   for (const p of state.enemyProjectiles) {
     const alpha = Math.max(
       0,
-      1 - (now - p.createdAt) / PROJECTILE_MAX_LIFETIME_MS,
+      1 - (now - p.createdAt) / state.projectileMaxLifetimeMs,
     );
     const zx = p.x * state.zoomLevel +
       (canvas.width * (1 - state.zoomLevel)) / 2;

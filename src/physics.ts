@@ -1,5 +1,5 @@
 import {
-  PROJECTILE_RADIUS, PROJECTILE_COLLISION_MARGIN, PROJECTILE_MAX_LIFETIME_MS,
+  PROJECTILE_RADIUS, PROJECTILE_COLLISION_MARGIN,
   PROJECTILE_MARGIN_FROM_EDGE, MIN_ZOOM, ZOOM_IN_SPEED, ZOOM_OUT_SPEED,
 } from './constants.js';
 import type { Asteroid, Projectile } from './types.js';
@@ -30,7 +30,10 @@ export function isProjectileCollidingWithShip(px: number, py: number): boolean {
 
 export function calculateProjectileEnergy(projectile: Projectile, now: number): number {
   const age = now - projectile.createdAt;
-  const energyPercent = Math.max(0, 1 - age / PROJECTILE_MAX_LIFETIME_MS);
+  const energyPercent = Math.max(
+    0,
+    1 - age / state.projectileMaxLifetimeMs,
+  );
   return energyPercent * 100;
 }
 
